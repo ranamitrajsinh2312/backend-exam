@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   
     if (user.role !== 'USER' && user.role !== 'MANAGER') {
-        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ message: 'Unauthorized user check your role' }, { status: 403 });
     }
 
     try {
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     } else if (user.role === 'USER') {
         whereClause = { createdBy: user.id };
     } else if (user.role !== 'MANAGER') {
-        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ message: 'Unauthorized user check your role' }, { status: 403 });
     }
 
     try {

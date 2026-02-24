@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
 
   if (user.role !== 'MANAGER') {
-    return NextResponse.json({ message: 'Forbidden: Manager access only' }, { status: 403 });
+    return NextResponse.json({ message: 'Unauthorized user check your role: Manager access only' }, { status: 403 });
   }
 
   const users = await prisma.user.findMany({
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   if (user.role !== 'MANAGER') {
     return NextResponse.json(
-      { message: 'Forbidden: Manager access only' },
+      { message: 'Unauthorized user check your role: Manager access only' },
       { status: 403 }
     );
   }

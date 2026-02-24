@@ -16,7 +16,6 @@ export async function PATCH(
     try {
         const { comment } = await req.json();
 
-        // Check if comment exists and if user is authorized
         const existingComment = await prisma.ticketComment.findUnique({
             where: { id: commentId }
         });
@@ -26,7 +25,7 @@ export async function PATCH(
         }
 
         if (existingComment.userId !== user.id && user.role !== 'MANAGER') {
-            return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+            return NextResponse.json({ message: 'Unauthorized user check your role' }, { status: 403 });
         }
 
         const updatedComment = await prisma.ticketComment.update({
@@ -65,7 +64,7 @@ export async function DELETE(
         }
 
         if (existingComment.userId !== user.id && user.role !== 'MANAGER') {
-            return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+            return NextResponse.json({ message: 'Unauthorized user check your role' }, { status: 403 });
         }
 
         await prisma.ticketComment.delete({

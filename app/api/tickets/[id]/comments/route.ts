@@ -17,7 +17,7 @@ export async function POST(
         const { comment } = await req.json();
 
         if (!comment) {
-            return NextResponse.json({ message: 'Comment text is required' }, { status: 400 });
+            return NextResponse.json({ message: 'Comment text is needed' }, { status: 400 });
         }
 
         const newComment = await prisma.ticketComment.create({
@@ -33,7 +33,7 @@ export async function POST(
 
         return NextResponse.json(newComment, { status: 201 });
     } catch (error) {
-        console.error('Error adding comment:', error);
+        console.error('Error is not added:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -59,7 +59,7 @@ export async function GET(
 
         return NextResponse.json(comments);
     } catch (error) {
-        console.error('Error fetching comments:', error);
+        console.error('failed in fetching comments:', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }

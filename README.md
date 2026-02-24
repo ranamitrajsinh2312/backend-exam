@@ -164,7 +164,7 @@ Body:
 
 Result:
 Admin -> 200 OK ✅
-User  -> 403 Forbidden ❌
+User  -> 403 Unauthorized user check your role ❌
 No Token -> 401 Unauthorized ❌
 
 ----------------------------------------
@@ -178,7 +178,7 @@ Authorization: Bearer ADMIN_TOKEN
 
 Result:
 Admin -> 200 OK ✅
-User  -> 403 Forbidden ❌
+User  -> 403 Unauthorized user check your role ❌
 No Token -> 401 Unauthorized ❌
 
 ----------------------------------------
@@ -192,7 +192,7 @@ Authorization: Bearer ADMIN_TOKEN
 
 Result:
 Admin -> 200 OK ✅
-User  -> 403 Forbidden ❌
+User  -> 403 Unauthorized user check your role ❌
 No Token -> 401 Unauthorized ❌
 
 ========================================

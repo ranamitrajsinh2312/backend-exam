@@ -14,7 +14,7 @@ export async function DELETE(
     const ticketId = parseInt(id);
 
     if (user.role !== 'MANAGER') {
-        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ message: 'Unauthorized user check your rolw' }, { status: 403 });
     }
 
     try {

@@ -35,7 +35,7 @@ export async function PATCH(
     const ticketId = parseInt(id);
 
     if (user.role !== 'MANAGER' && user.role !== 'SUPPORT') {
-        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ message: 'Unauthorized user check your role' }, { status: 403 });
     }
 
     try {

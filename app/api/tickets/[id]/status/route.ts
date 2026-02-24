@@ -35,7 +35,7 @@ export async function PATCH(
     const ticketId = parseInt(id);
 
     if (user.role !== 'MANAGER' && user.role !== 'SUPPORT') {
-        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ message: 'Unauthorized user check youre role' }, { status: 403 });
     }
 
     try {
@@ -56,7 +56,7 @@ export async function PATCH(
         if (error.code === 'P2025') {
             return NextResponse.json({ message: 'Ticket not found' }, { status: 404 });
         }
-        console.error('Error updating ticket status:', error);
+        console.error('Error updating ticket :', error);
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
