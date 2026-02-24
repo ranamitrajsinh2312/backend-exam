@@ -1,19 +1,23 @@
-import { verifyToken } from "./jwt";
+// middleware/auth.ts  (or wherever you have it)
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '@/lib/jwt';
 
-// Middleware to check JWT in Authorization header
-export function authMiddleware(req: Request) {
-  const authHeader = req.headers.get("authorization");
+export function authMiddleware(req: NextRequest) {
+  const authHeader = req.headers.get('authorization');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
+  if (!token) {
+    return NextResponse.json({ message: 'No token provided' }, { status: 401 });
   }
 
-  const token = authHeader.split(" ")[1];
+  const payload = verifyToken(token);
 
-  try {
-    const decoded = verifyToken(token);
-    return decoded; // contains id, email, role
-  } catch {
-    return null;
+  if (!payload) {
+    return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
   }
+
+  // Attach to request instead of returning
+  (req as any).user = payload;
+
+  return null; // null means continue (success)
 }

@@ -3,15 +3,99 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "mysql"   // or "mysql", "sqlite", etc.
   url      = env("DATABASE_URL")
 }
 
+enum RoleName {
+  MANAGER
+  SUPPORT
+  USER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Role {
+  id    Int      @id @default(autoincrement())
+  name  RoleName @unique
+
+  users User[]
+}
+
 model User {
+  id              Int      @id @default(autoincrement())
+  name            String   
+  email           String   @unique 
+  password        String    
+  roleId          Int
+  role            Role     @relation(fields: [roleId], references: [id])
+
+  createdTickets  Ticket[] @relation("CreatedBy")
+  assignedTickets Ticket[] @relation("AssignedTo")
+
+  comments        TicketComment[]
+  statusLogs      TicketStatusLog[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Ticket {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+
+  createdBy   Int
+  creator     User           @relation("CreatedBy", fields: [createdBy], references: [id])
+
+  assignedTo  Int?
+  assignee    User?          @relation("AssignedTo", fields: [assignedTo], references: [id])
+
+  comments    TicketComment[]
+  statusLogs  TicketStatusLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TicketComment {
   id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("user")
+  comment   String   
+
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TicketStatusLog {
+  id        Int          @id @default(autoincrement())
+
+  ticketId  Int
+  ticket    Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  oldStatus TicketStatus
+  newStatus TicketStatus
+
+  changedBy Int
+  user      User         @relation(fields: [changedBy], references: [id])
+
+  changedAt DateTime     @default(now())
 }

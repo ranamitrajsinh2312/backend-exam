@@ -2,12 +2,12 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { generateToken } from "@/lib/jwt";
 
-// Login endpoint: verifies user and returns JWT
 export async function POST(req: Request) {
   const { email, password } = await req.json();
 
   const user = await prisma.user.findUnique({
     where: { email },
+    include: { role: true },
   });
 
   if (!user) {
