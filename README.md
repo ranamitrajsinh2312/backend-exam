@@ -1,222 +1,263 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+```markdown
+# Ticket Management API - Testing Guide (Thunder Client / Postman)
 
-## Getting Started
+**Base URL:** `http://localhost:3000`
 
-First, run the development server:
-
-```bash
-npm run dev
-
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-
-## Prisma Setup & Connection
-
-This project uses [Prisma ORM](https://www.prisma.io/) for database access.
-
-### Prisma Version
-
-```
-prisma                  : 6.19.2
-@prisma/client          : 6.19.2
-```
-
-### Steps to Connect Prisma
-
-1. **Install dependencies** (if not already):
-	```bash
-	npm install prisma @prisma/client
-	```
-
-2. **Configure your database connection**:
-	- Edit the `DATABASE_URL` in your `.env` file to point to your MySQL database. Example:
-	  ```env
-	  DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DATABASE"
-	  ```
-
-3. **Prisma schema**:
-	- The schema is defined in `prisma/schema.prisma`.
-
-4. **Generate Prisma Client**:
-	```bash
-	npx prisma generate
-	```
-
-5. **Run migrations (if you change the schema)**:
-	```bash
-	npx prisma migrate dev --name init
-	```
-
-6. **Use Prisma Client in your code**:
-	- Import and use the client from `lib/prisma.ts`.
-
-7. **Check Prisma Studio (optional, for DB UI):**
-	```bash
-	npx prisma studio
-	```
+**How to test**
+- Use **Thunder Client** (VS Code extension) or **Postman**.
+- Create an **Environment** with these variables:
+  - `baseUrl` → `http://localhost:3000`
+  - `token` → (leave empty, fill after login)
+  - `ticketId` → (fill after creating a ticket)
+  - `commentId` → (fill after creating a comment)
+- For every protected request, add header:
+  ```
+  Authorization: Bearer {{token}}
+  ```
+- Content-Type: `application/json` for all POST/PATCH bodies.
 
 ---
-<<<<<<< HEAD
-=======
 
+## 1. Authentication
 
-# 🚀 Next.js + Prisma + JWT + MySQL Backend Testing
+### POST /auth/login
+**Role:** Public
 
-Base URL:
-http://localhost:3000/api
-
-========================================
-🔐 AUTH APIs
-========================================
-
-1️⃣ REGISTER
-
-POST /api/register
-
-Body:
+**Body (JSON)**
+```json
 {
-  "name": "test",
-  "email": "test@gmail.com",
-  "password": "123456"
+  "email": "manager@123.com",
+  "password": "password123"
 }
+```
+*(Use any existing user from your DB. Password is whatever you set when creating the user.)*
 
-Response:
-200 OK
+**Expected 200 Response**
+```json
 {
-  "message": "User registered"
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
+```
+→ Copy the token and paste it into environment variable `token`.
 
-----------------------------------------
+**Other test logins you can use:**
+- `rana@example.com` / password you set
+- `support@example.com` (after creating below)
 
-2️⃣ LOGIN
+---
 
-POST /api/login
+## 2. User Management (MANAGER only)
 
-Body:
+### POST /users → Create User
+**Body examples:**
+
+**Create SUPPORT user**
+```json
 {
-  "email": "test@gmail.com",
-  "password": "123456"
+  "name": "Support Sharma",
+  "email": "support@example.com",
+  "password": "support123",
+  "role": "SUPPORT"
 }
+```
 
-Response:
-200 OK
+**Create normal USER**
+```json
 {
-  "token": "JWT_TOKEN"
+  "name": "Test User",
+  "email": "user@example.com",
+  "password": "user123",
+  "role": "USER"
 }
+```
 
-========================================
-🔑 SAMPLE TOKENS
-========================================
-
-USER TOKEN (role: user)
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-ADMIN TOKEN (role: admin)
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-========================================
-📄 PROTECTED APIs
-========================================
-
-3️⃣ GET USERS
-
-GET /api/users
-
-Header:
-Authorization: Bearer USER_TOKEN
-
-Result:
-User  -> 200 OK ✅
-Admin -> 200 OK ✅
-No Token -> 401 Unauthorized ❌
-
-----------------------------------------
-
-4️⃣ CREATE USER (Admin Only)
-
-POST /api/users
-
-Header:
-Authorization: Bearer ADMIN_TOKEN
-
-Body:
+**Expected 201 Response**
+```json
 {
-  "name": "newUser",
-  "email": "new@gmail.com",
-  "password": "123456",
-  "role": "user"
+  "id": 9,
+  "name": "Support Sharma",
+  "email": "support@example.com",
+  "role": { "id": 3, "name": "SUPPORT" },
+  "created_at": "2026-02-24T12:45:00.000Z"
 }
+```
 
-Result:
-Admin -> 200 OK ✅
-User  -> 403 Forbidden ❌
-No Token -> 401 Unauthorized ❌
+### GET /users → List all users
+No body.  
+Expected: array of all users (same format as above).
 
-----------------------------------------
+---
 
-5️⃣ UPDATE USER (Admin Only)
+## 3. Tickets
 
-PUT /api/users/1
+### POST /tickets → Create Ticket (USER + MANAGER)
+**Body examples:**
 
-Header:
-Authorization: Bearer ADMIN_TOKEN
+```json
+{
+  "title": "Login page not loading",
+  "description": "After entering credentials, spinner keeps loading forever.",
+  "priority": "HIGH"
+}
+```
 
-Result:
-Admin -> 200 OK ✅
-User  -> 403 Forbidden ❌
-No Token -> 401 Unauthorized ❌
+```json
+{
+  "title": "Payment gateway issue",
+  "description": "UPI option not showing for some users.",
+  "priority": "MEDIUM"
+}
+```
 
-----------------------------------------
+**Expected 201 Response**
+```json
+{
+  "id": 5,
+  "title": "Login page not loading",
+  "description": "After entering credentials...",
+  "status": "OPEN",
+  "priority": "HIGH",
+  "created_by": { ... },
+  "assigned_to": null,
+  "created_at": "2026-02-24T12:50:00.000Z"
+}
+```
+→ Copy the `id` and set environment variable `ticketId = 5`
 
-6️⃣ DELETE USER (Admin Only)
+### GET /tickets → List tickets
+- MANAGER → sees **all** tickets
+- SUPPORT → sees only **assigned** tickets
+- USER → sees only **their own** tickets
 
-DELETE /api/users/1
+**Example response (exactly like you provided):**
+```json
+[
+  {
+    "id": 4,
+    "title": "Tamasha ",
+    "description": "\"Ved the Casanova\"",
+    "status": "OPEN",
+    "priority": "MEDIUM",
+    "createdBy": 8,
+    "assignedTo": null,
+    "createdAt": "2026-02-24T06:37:03.382Z",
+    "updatedAt": "2026-02-24T06:37:03.382Z",
+    "creator": {
+      "id": 8,
+      "name": "Manager Kohli",
+      "email": "manager@123.com",
+      "role": { "id": 2, "name": "MANAGER" },
+      "createdAt": "2026-02-24T06:03:44.583Z"
+    },
+    "assignee": null
+  },
+  {
+    "id": 3,
+    "title": "Rockstar 2011",
+    "description": "\"Jordan the Casanova\"",
+    "status": "OPEN",
+    "priority": "MEDIUM",
+    "createdBy": 3,
+    "assignedTo": null,
+    "createdAt": "2026-02-24T06:35:23.333Z",
+    "updatedAt": "2026-02-24T06:34:16.601Z",
+    "creator": {
+      "id": 3,
+      "name": "Rana",
+      "email": "rana@example.com",
+      "role": { "id": 2, "name": "MANAGER" },
+      "createdAt": "2026-02-24T03:54:18.102Z"
+    },
+    "assignee": null
+  }
+]
+```
 
-Header:
-Authorization: Bearer ADMIN_TOKEN
+### PATCH /tickets/{{ticketId}}/assign → Assign ticket (MANAGER / SUPPORT)
+**Body**
+```json
+{
+  "assignedTo": 9
+}
+```
+*(9 = ID of Support Sharma you created earlier)*
 
-Result:
-Admin -> 200 OK ✅
-User  -> 403 Forbidden ❌
-No Token -> 401 Unauthorized ❌
+**Expected 200:** Updated ticket with `assigned_to` populated.
 
-========================================
-📊 ROLE PERMISSIONS SUMMARY
-========================================
+### PATCH /tickets/{{ticketId}}/status → Update status (MANAGER / SUPPORT)
+**Body**
+```json
+{
+  "status": "IN_PROGRESS"
+}
+```
+Other possible values: `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`
 
-Register        -> User ✅ | Admin ✅
-Login           -> User ✅ | Admin ✅
-Get Users       -> User ✅ | Admin ✅
-Create User     -> User ❌ | Admin ✅
-Update User     -> User ❌ | Admin ✅
-Delete User     -> User ❌ | Admin ✅
+**Expected 200:** Ticket with new status.
 
-========================================
-HTTP STATUS CODES
-========================================
+### DELETE /tickets/{{ticketId}} → Delete ticket (MANAGER only)
+No body.  
+Expected: **204 No Content**
 
-200  -> Success
-401  -> Not Logged In
-403  -> Logged In But No Permission
-404  -> Not Found
->>>>>>> 91e43ed0ae608e1a4dcd8c58ec1cdde0ec2e9abc
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 4. Comments
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# usercruddemo" 
+### POST /tickets/{{ticketId}}/comments → Add comment
+**Body**
+```json
+{
+  "comment": "I am looking into this issue. Can you share console error?"
+}
+```
+
+**Expected 201**
+```json
+{
+  "id": 12,
+  "comment": "I am looking into this issue...",
+  "user": { ...your user details... },
+  "created_at": "2026-02-24T13:00:00.000Z"
+}
+```
+→ Copy `id` → set environment `commentId = 12`
+
+### GET /tickets/{{ticketId}}/comments → List comments
+No body. Returns array of comments.
+
+### PATCH /comments/{{commentId}} → Edit comment (author or MANAGER)
+**Body**
+```json
+{
+  "comment": "Updated: Please check network tab as well."
+}
+```
+
+**Expected 200:** Updated comment object.
+
+### DELETE /comments/{{commentId}} → Delete comment (author or MANAGER)
+No body. Expected **204 No Content**
+
+---
+
+## Quick Test Flow (Recommended)
+
+1. Login as `manager@123.com`
+2. Create SUPPORT user
+3. Create 2-3 tickets as MANAGER
+4. Login as SUPPORT user → assign tickets to yourself
+5. Update status to IN_PROGRESS / RESOLVED
+6. Add comments
+7. Try to edit/delete comment as author
+8. Login as MANAGER → delete one ticket
+
+**All example data above is ready to copy-paste directly into Thunder Client / Postman.**
+
+You now have complete test data for **every single endpoint**.  
+Just replace `{{ticketId}}` and `{{commentId}}` with real values from responses.
+
+Happy testing! 🚀
+```
+
+**Copy everything above** and save as `README.md` in your project root.  
+No curl commands, only clean JSON bodies and clear instructions for Thunder Client / Postman — exactly what you asked for.
