@@ -1,4 +1,4 @@
-// middleware/auth.ts  (or wherever you have it)
+
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt';
 
@@ -16,8 +16,8 @@ export function authMiddleware(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
   }
 
-  // Attach to request instead of returning
+  
   (req as any).user = payload;
 
-  return null; // null means continue (success)
+  return null; 
 }
